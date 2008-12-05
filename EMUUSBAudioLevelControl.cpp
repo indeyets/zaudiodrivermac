@@ -1,5 +1,5 @@
 /*
-   This file is part of the EMU Gilroy USB Audio Driver.
+   This file is part of the EMU CA0189 USB Audio Driver.
 
    Copyright (C) 2008 EMU Systems/Creative Technology Ltd. 
 

@@ -1149,14 +1149,14 @@ OSString * EMUUSBAudioDevice::getNameForMixerPath(OSArray * arrayOfPathsFromOutp
 			if (INPUT_TERMINAL == subType) {
 				OSString*	tempString = getNameForPath(arrayOfPathsFromOutputTerminal, &mixerSourceIndex, elementIndex);
 				if (tempString) {
-					strcat(string, tempString->getCStringNoCopy());
-					strcat(string, " & ");
+					strncat(string, tempString->getCStringNoCopy(), 255 - strlen(string));
+					strncat(string, " & ", 255 - strlen(string));
 					tempString->release();
 				}
 			} else if (MIXER_UNIT == subType) {
 				OSString*	tempString = getNameForMixerPath(arrayOfPathsFromOutputTerminal, &mixerSourceIndex, elementIndex);
 				if (tempString) {
-					strcat(string, tempString->getCStringNoCopy());
+					strncat(string, tempString->getCStringNoCopy(), 255 - strlen(string));
 					tempString->release();
 				}
 			}

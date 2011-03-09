@@ -2119,7 +2119,7 @@ IOReturn EMUUSBAudioEngine::PrepareWriteFrameList (UInt32 arrayIndex) {
 #endif
 	
 				lastPreparedByte = thisFrameSize - numBytesToBufferEnd;
-				mOutput.usbCompletion[arrayIndex].parameter = (void *)(((numUSBFramesPrepared + 1) << 16) | lastPreparedByte);
+				mOutput.usbCompletion[arrayIndex].parameter = (void *)new UInt32(((numUSBFramesPrepared + 1) << 16) | lastPreparedByte);
 				theWrapDescriptors[0]->initSubRange (mOutput.usbBufferDescriptor, previouslyPreparedBufferOffset, sampleBufferSize - previouslyPreparedBufferOffset, kIODirectionInOut);
 				numBytesToBufferEnd = sampleBufferSize - lastPreparedByte;// reset
 				haveWrapped = true;
@@ -2189,7 +2189,7 @@ IOReturn EMUUSBAudioEngine::readFrameList (UInt32 frameListNum) {// frameListNum
 		UInt32		firstFrame = frameListNum * mInput.numUSBFramesPerList;
 		mInput.usbCompletion[frameListNum].target = (void*) this;
 		mInput.usbCompletion[frameListNum].action = readHandler;
-		mInput.usbCompletion[frameListNum].parameter = (void*) frameListNum; // remember the frameListNum
+		mInput.usbCompletion[frameListNum].parameter = (void*) new UInt32(frameListNum); // remember the frameListNum
 
 #if 0
 		// unrolled for loop - numUSBFramesPerList is 4 (i have no idea why this was done [AC])
@@ -2741,7 +2741,7 @@ Exit:
 	return result;
 } 
 
-void EMUUSBAudioEngine::writeHandler (void * object, void * parameter, IOReturn result, IOUSBLowLatencyIsocFrame * pFrames) {
+void EMUUSBAudioEngine::writeHandler (void * object, void * _parameter, IOReturn result, IOUSBLowLatencyIsocFrame * pFrames) {
 	EMUUSBAudioEngine *	self = (EMUUSBAudioEngine*) object;
 	if (!self->inWriteCompletion) {
 		self->inWriteCompletion = TRUE;
@@ -2771,12 +2771,18 @@ void EMUUSBAudioEngine::writeHandler (void * object, void * parameter, IOReturn 
 
 		//debugIOLog("writehandler: frame %d, parameter %u",curUSBFrameNumber,(UInt32) parameter);
 
-		if (0 != parameter) {
+		if (0 != _parameter) {
 			// Take a timestamp 
 			AbsoluteTime systemTime;
 			unsigned long long	/*systemTime,*/ stampTime;
-			UInt32	byteOffset = (UInt32)parameter & 0x00FF;
-			unsigned long	frameIndex = ((UInt32) parameter >>16) - 1;
+			UInt32	parameter;
+			{
+				UInt32	*parameter_ptr = (UInt32 *) _parameter;
+				parameter = (*parameter_ptr) & 0x00FF;
+				delete(parameter_ptr);
+			}
+			UInt32	byteOffset = parameter & 0x00FF;
+			unsigned long	frameIndex = (parameter >>16) - 1;
 			if (kUSBDeviceSpeedHigh == self->mHubSpeed) {// consider the high speed bus case first
 				//UInt32	byteCount = self->mOutput.maxFrameSize;
 				UInt32	byteCount = self->lastInputFrames * self->mOutput.multFactor;

@@ -121,7 +121,7 @@ IOReturn EMUUSBAudioMuteControl::performValueChange (OSObject * newValue) {
     // we get pipe stall errors and the change is never made
 
     assert (setValueThreadCall);
-    thread_call_enter1 (setValueThreadCall, (thread_call_param_t)newValueAsSInt32);
+    thread_call_enter1 (setValueThreadCall, new UInt32(newValueAsSInt32));
     
     debugIOLog ("-EMUUSBAudioMuteControl::performValueChange (%d)", newValueAsSInt32);
 
@@ -196,7 +196,12 @@ void EMUUSBAudioMuteControl::updateValueCallback (void *arg1, void *arg2) {
 
     debugIOLog ("+EMUUSBAudioMuteControl::updateValueCallback (%d, %d)", (UInt32*)arg1, (UInt32*)arg2);
     muteControl = (EMUUSBAudioMuteControl *)arg1;
-    value = (UInt32)arg2;
+
+	{
+		UInt32 *value_ptr = (UInt32 *)arg2;
+		value = *value_ptr;
+		delete(value_ptr);
+	}
 
     if (muteControl && OSDynamicCast (EMUUSBAudioMuteControl, muteControl)) {
         muteControl->updateUSBValue (value);

@@ -206,7 +206,7 @@ IOReturn EMUUSBAudioLevelControl::performValueChange (OSObject * newValue) {
 		debugIOLog ("++EMUUSBAudioLevelControl[%p]::performValueChange (%ld)", this, newValueAsSInt32);
 
 	    if (NULL != setValueThreadCall) {
-	        thread_call_enter1 (setValueThreadCall, (thread_call_param_t)newValueAsSInt32);
+	        thread_call_enter1 (setValueThreadCall, new SInt32(newValueAsSInt32));
 	    }
 
 	    debugIOLog ("-EMUUSBAudioLevelControl[%p]::performValueChange (%d)", this, newValueAsSInt32);
@@ -369,7 +369,13 @@ DeviceInactive:
 
 void EMUUSBAudioLevelControl::updateValueCallback (void *arg1, void *arg2) {
     EMUUSBAudioLevelControl 		*levelControl = OSDynamicCast (EMUUSBAudioLevelControl, (OSObject*)arg1);
-    SInt32							value = (SInt32)arg2;
+    SInt32							value;
+
+	{
+		SInt32 *value_ptr = (SInt32 *)arg2;
+		value = *value_ptr;
+		delete(value_ptr);
+	}
 
     debugIOLog ("+EMUUSBAudioLevelControl::updateValueCallback (%p, %p)", (UInt32*)arg1, (UInt32*)arg2);
 

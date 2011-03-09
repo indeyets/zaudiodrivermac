@@ -1132,7 +1132,7 @@ void StereoFilter4thOrderPhaseComp (Float32 *in, Float32 *low, Float32 *high, UI
 }
 
 // aml new routines [3034710]
-#pragma mark ¥¥¥ New clipping routines
+#pragma mark Â¥Â¥Â¥ New clipping routines
 #if	defined(__ppc__)
 
 // this behaves incorrectly in Float32ToSwapInt24 if not declared volatile

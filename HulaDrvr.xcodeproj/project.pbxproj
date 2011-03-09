@@ -688,7 +688,10 @@
 		1DB48EB60A41E7940086D341 /* Release with FireLog Debug info */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = (
+					x86_64,
+					i386,
+				);
 				GCC_PREPROCESSOR_DEFINITIONS = _HULA_MACOSX_;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
@@ -756,7 +759,10 @@
 		1DEB911F08733D790010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				ARCHS = (
+					x86_64,
+					i386,
+				);
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = _HULA_MACOSX_;
@@ -776,7 +782,10 @@
 		1DEB912008733D790010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = (
+					x86_64,
+					i386,
+				);
 				GCC_PREPROCESSOR_DEFINITIONS = _HULA_MACOSX_;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
@@ -1088,7 +1097,10 @@
 		81D16A620AFC1E0B00BBE3F0 /* Timebomb Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = (
+					x86_64,
+					i386,
+				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					_HULA_MACOSX_,
 					"ENABLE_TIMEBOMB=1",

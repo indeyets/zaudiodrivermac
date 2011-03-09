@@ -1054,7 +1054,7 @@ void EMUUSBAudioEngine::CoalesceInputSamples(SInt32 numBytesToCoalesce, IOUSBLow
 	UInt8*	dest = buffStart + mInput.bufferOffset;
 
 	UInt8*	source = (UInt8 *)readBuffer + (mInput.currentFrameList * readUSBFrameListSize);
-	bool	looped = false;// flag to ensure we only go through the array of frames just 2x. 
+	// bool	looped = false;// flag to ensure we only go through the array of frames just 2x. 
 
 	while (framesChecked < frameLimit && kUSBLowLatencyIsochTransferKey != pFrames[usbFrameIndex].frStatus && 
 		-1 != pFrames[usbFrameIndex].frStatus) {
@@ -2065,7 +2065,7 @@ IOReturn EMUUSBAudioEngine::PrepareWriteFrameList (UInt32 arrayIndex) {
 		const UInt16 stockSamplesInFrameDivisor = 1000 * kNumberOfFramesPerMillisecond;
 		stockSamplesInFrame = averageSampleRate / stockSamplesInFrameDivisor;
 				
-		UInt16 contiguousZeroes = 0;
+		// UInt16 contiguousZeroes = 0;
 		
 //		debugIOLog("PrepareWriteFrameList stockSamplesInFrame %d numUSBFramesPerList %d", stockSamplesInFrame, numUSBFramesPerList);
 		for (UInt32 numUSBFramesPrepared = 0; numUSBFramesPrepared < mOutput.numUSBFramesPerList; ++numUSBFramesPrepared) {

@@ -43,6 +43,7 @@
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IOTimerEventSource.h>
 #include <IOKit/IOMultiMemoryDescriptor.h>
+#include <IOKit/IOSubMemoryDescriptor.h>
 
 #include <IOKit/audio/IOAudioDevice.h>
 #include <IOKit/audio/IOAudioPort.h>

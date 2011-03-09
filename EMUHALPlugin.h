@@ -20,17 +20,20 @@
 #ifndef __EMUHALPLUGIN__
 #define __EMUHALPLUGIN__
 
-
 #include "EMUUSBDeviceDefines.h"
-#include <CoreAudio/AudioHardware.h>
+
+#define CF_EXCLUDE_CSTD_HEADERS 1
+#include <CoreFoundation/CoreFoundation.h>
+#include <CoreAudio/CoreAudio.h>
 #include <IOKit/IOKitLib.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+
 #if DEBUGLOGGING
 #include <FireLog.h>
 #endif
 
-
-
-#include <CoreFoundation/CoreFoundation.h>
 #define DEBUG_PRINT	1
 #define DIRECTMONITOR 0	// currently no direct monitor
 

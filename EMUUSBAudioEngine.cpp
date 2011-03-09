@@ -2783,7 +2783,7 @@ void EMUUSBAudioEngine::writeHandler (void * object, void * _parameter, IOReturn
 			UInt32	parameter;
 			{
 				UInt32	*parameter_ptr = (UInt32 *) _parameter;
-				parameter = (*parameter_ptr) & 0x00FF;
+				parameter = (*parameter_ptr);
 				delete(parameter_ptr);
 			}
 			UInt32	byteOffset = parameter & 0x00FF;

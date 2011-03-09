@@ -1439,7 +1439,7 @@ OSString * EMUUSBAudioEngine::getGlobalUniqueID () {
 		usbLocation = OSDynamicCast (OSNumber, mInput.streamInterface->GetDevice()->getProperty (kUSBDevicePropertyLocationID));
 		if (NULL != usbLocation) {
 			locationID = usbLocation->unsigned32BitValue ();
-			sprintf (locationIDString, "%x", locationID);
+			snprintf (locationIDString, kStringBufferSize, "%x", locationID);
 		} else {
 			strncpy (locationIDString, "Unknown location", kStringBufferSize);
 		}
@@ -1451,7 +1451,7 @@ OSString * EMUUSBAudioEngine::getGlobalUniqueID () {
 	}
 
 	interfaceNumber = mInput.streamInterface->GetInterfaceNumber ();
-	sprintf (interfaceNumberString, "%d", interfaceNumber);
+	snprintf (interfaceNumberString, 4, "%d", interfaceNumber);
 	uniqueIDSize += strlen (interfaceNumberString);
 
 	uniqueIDStr = (char *)IOMalloc (uniqueIDSize);
@@ -1460,9 +1460,9 @@ OSString * EMUUSBAudioEngine::getGlobalUniqueID () {
 		uniqueIDStr[0] = 0;
 	
 		if (0 == serialNumberString[0]) {
-			sprintf (uniqueIDStr, "EMUUSBAudioEngine:%s:%s:%s:%s", manufacturerString, productString, locationIDString, interfaceNumberString);
+			snprintf (uniqueIDStr, uniqueIDSize, "EMUUSBAudioEngine:%s:%s:%s:%s", manufacturerString, productString, locationIDString, interfaceNumberString);
 		} else {
-			sprintf (uniqueIDStr, "EMUUSBAudioEngine:%s:%s:%s:%s", manufacturerString, productString, serialNumberString, interfaceNumberString);
+			snprintf (uniqueIDStr, uniqueIDSize, "EMUUSBAudioEngine:%s:%s:%s:%s", manufacturerString, productString, serialNumberString, interfaceNumberString);
 		}
 	
 		uniqueID = OSString::withCString (uniqueIDStr);
@@ -1754,8 +1754,8 @@ bool EMUUSBAudioEngine::initHardware (IOService *provider) {
 
     resultBool = TRUE;
     
-	sprintf (vendorIDCString, "0x%04X", mInput.streamInterface->GetDevice()->GetVendorID ());
-	sprintf (productIDCString, "0x%04X", mInput.streamInterface->GetDevice()->GetProductID ());
+	snprintf (vendorIDCString, 7, "0x%04X", mInput.streamInterface->GetDevice()->GetVendorID ());
+	snprintf (productIDCString, 7, "0x%04X", mInput.streamInterface->GetDevice()->GetProductID ());
 	
 	setupChannelNames();
 		

@@ -215,7 +215,7 @@ public:
 
 	OSArray * 		BuildConnectionGraph (UInt8 controlInterfaceNum);
 	OSArray * 		BuildPath (UInt8 controlInterfaceNum, UInt8 startingUnitID, OSArray *allPaths, OSArray * thisPath);
-	char * 			TerminalTypeString (UInt16 terminalType);
+	const char * 			TerminalTypeString (UInt16 terminalType);
 
 	SInt32			getEngineInfoIndex (EMUUSBAudioEngine * inAudioEngine);
 	IOReturn		doControlStuff (IOAudioEngine *audioEngine, UInt8 interfaceNum, UInt8 altSettingNum);

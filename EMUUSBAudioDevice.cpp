@@ -2100,8 +2100,8 @@ Exit:
 	return curPath;
 }
 
-char * EMUUSBAudioDevice::TerminalTypeString(UInt16 terminalType) {
-	char *					terminalTypeString;
+const char * EMUUSBAudioDevice::TerminalTypeString(UInt16 terminalType) {
+	const char *					terminalTypeString;
 
 	switch(terminalType) {
 		case 0x101:											terminalTypeString = "USB streaming";									break;

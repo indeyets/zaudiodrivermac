@@ -1402,10 +1402,10 @@ Exit:
 
 IOReturn EMUUSBAudioDevice::setExtensionUnitSetting(UInt8 unitID, UInt8 controlSelector, void* settings, UInt32 length) {
 	IOReturn					result = kIOReturnError;
-	IOBufferMemoryDescriptor*	settingDesc = IOBufferMemoryDescriptor::withOptions(kIODirectionOut, length);
+	IOBufferMemoryDescriptor*	settingDesc = IOBufferMemoryDescriptor::withOptions(kIODirectionOut, length, page_size);
 	if(NULL != settingDesc) {
 		IOUSBDevRequestDesc		devReq;
-		settingDesc->initWithBytes(settings, length, kIODirectionOut);
+		settingDesc->writeBytes(0, settings, length);
 		devReq.bmRequestType = USBmakebmRequestType(kUSBOut, kUSBClass, kUSBInterface);
 		devReq.bRequest = SET_CUR;
 		devReq.wValue = controlSelector << 8;
@@ -1460,7 +1460,7 @@ IOReturn EMUUSBAudioDevice::setFeatureUnitSetting(UInt8 controlSelector, UInt8 u
 		IOBufferMemoryDescriptor*	settingDesc = NULL;
 		settingDesc = OSTypeAlloc(IOBufferMemoryDescriptor);
 		if (settingDesc) {
-			settingDesc->initWithBytes(&newValue, newValueLen, kIODirectionIn);
+			settingDesc->writeBytes(0, &newValue, newValueLen);
 
 			devReq.bmRequestType = USBmakebmRequestType(kUSBOut, kUSBClass, kUSBInterface);
 			devReq.bRequest = requestType;
@@ -1983,7 +1983,7 @@ IOReturn EMUUSBAudioDevice::setSelectorSetting(UInt8 selectorID, UInt8 setting) 
 		IOBufferMemoryDescriptor*	settingDesc = OSTypeAlloc(IOBufferMemoryDescriptor);
 		if (settingDesc) {
 			IOUSBDevRequestDesc		devReq;
-			settingDesc->initWithBytes(&setting, 1, kIODirectionIn);
+			settingDesc->writeBytes(0, &setting, 1);
 			devReq.bmRequestType = USBmakebmRequestType(kUSBOut, kUSBClass, kUSBInterface);
 			devReq.bRequest = SET_CUR;
 			devReq.wValue = 0;

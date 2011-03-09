@@ -1232,8 +1232,13 @@ IOReturn EMUUSBAudioEngine::convertInputSamples (const void *sampleBuf, void *de
 // NB  byteCount MUST never == 0. If this computation is incorrect, we will encounter audio artifacts
 AbsoluteTime EMUUSBAudioEngine::generateTimeStamp(UInt32 usbFrameIndex, UInt32 preWrapBytes, UInt32 byteCount) {
 	UInt64			time_nanos = 0;
+#ifdef __x86_64__
 	AbsoluteTime	time = 0;
 	AbsoluteTime	refWallTime = 0;
+#else
+	AbsoluteTime	time = {0,0};
+	AbsoluteTime	refWallTime = {0,0};
+#endif
 	UInt64			referenceWallTime_nanos = 0;
 	UInt64			referenceFrame = 0ull;
 	

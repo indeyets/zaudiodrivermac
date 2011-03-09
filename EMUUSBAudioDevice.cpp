@@ -797,11 +797,14 @@ IOReturn EMUUSBAudioDevice::doControlStuff(IOAudioEngine *audioEngine, UInt8 int
 	engineInfo->setObject(kAltSetting, number);
 	number->release();
 	// try finding the engine info before putting anything in
-	SInt32	engineInfoIndex = getEngineInfoIndex(usbAudioEngine);
-	OSDictionary*	storedEngineInfo = OSDynamicCast(OSDictionary, mRegisteredEngines->getObject(engineInfoIndex));
-	if (!storedEngineInfo) {
-		mRegisteredEngines->setObject(engineInfo);
-		++mNumEngines;
+	{
+		SInt32	engineInfoIndex = getEngineInfoIndex(usbAudioEngine);
+		OSDictionary*	storedEngineInfo = OSDynamicCast(OSDictionary, mRegisteredEngines->getObject(engineInfoIndex));
+
+		if (!storedEngineInfo) {
+			mRegisteredEngines->setObject(engineInfo);
+			++mNumEngines;
+		}
 	}
 	engineInfo->release();
 
@@ -852,79 +855,80 @@ IOReturn EMUUSBAudioDevice::doControlStuff(IOAudioEngine *audioEngine, UInt8 int
 			}
 		}
 
-		UInt32 numOutputTerminalArrays = mControlGraph->getCount();
-		for(pathsToOutputTerminalN = 0; pathsToOutputTerminalN < numOutputTerminalArrays; ++pathsToOutputTerminalN) {
-			arrayOfPathsFromOutputTerminal = OSDynamicCast(OSArray, mControlGraph->getObject(pathsToOutputTerminalN));
-			FailIf(NULL == arrayOfPathsFromOutputTerminal, Exit);
-			aPath = OSDynamicCast(OSArray, arrayOfPathsFromOutputTerminal->getObject(0));
-			FailIf(NULL == aPath, Exit);
-			theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(0));
-			FailIf(NULL == theUnitIDNum, Exit);
-			UInt8 unitID = theUnitIDNum->unsigned8BitValue();
-
-			if(unitID == outputTerminalID) {
-				// Check for a playthrough path that would require a playthrough control
-				theUnitIDNum = OSDynamicCast(OSNumber, aPath->getLastObject());
+		{
+			UInt32 numOutputTerminalArrays = mControlGraph->getCount();
+			for(pathsToOutputTerminalN = 0; pathsToOutputTerminalN < numOutputTerminalArrays; ++pathsToOutputTerminalN) {
+				arrayOfPathsFromOutputTerminal = OSDynamicCast(OSArray, mControlGraph->getObject(pathsToOutputTerminalN));
+				FailIf(NULL == arrayOfPathsFromOutputTerminal, Exit);
+				aPath = OSDynamicCast(OSArray, arrayOfPathsFromOutputTerminal->getObject(0));
+				FailIf(NULL == aPath, Exit);
+				theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(0));
 				FailIf(NULL == theUnitIDNum, Exit);
-				unitID = theUnitIDNum->unsigned8BitValue();
-				playThroughPaths = getPlaythroughPaths();
-#if ENABLEHARDCONTROLS
-				if(playThroughPaths) {
-					doPlaythroughSetup(usbAudioEngine, playThroughPaths, interfaceNum, altSettingNum);
-					playThroughPaths->release();
-				}
-				numPathsFromOutputTerminal = arrayOfPathsFromOutputTerminal->getCount();
-				if(numPathsFromOutputTerminal > 1 && mUSBAudioConfig->GetNumSelectorUnits(mInterfaceNum, 0)) {
-					// Found the array of paths that lead to our streaming output terminal
-					UInt32 numUnitsInPath = aPath->getCount();
-					for(UInt32 unitIndexInPath = 1; unitIndexInPath < numUnitsInPath; ++unitIndexInPath) {
-						theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(unitIndexInPath));
-						FailIf(NULL == theUnitIDNum, Exit);
-						UInt8 unitID = theUnitIDNum->unsigned8BitValue();
-						if(SELECTOR_UNIT == mUSBAudioConfig->GetSubType(mInterfaceNum, 0, unitID)) {
-							if(kIOReturnSuccess == setSelectorSetting(unitID, 1)) {
-								selectorUnitID = unitID;
-								engineIndex = getEngineInfoIndex(usbAudioEngine);
-								if(-1 != engineIndex) {
-									selection =(0xFF000000 &(pathsToOutputTerminalN << 24)) |(0x00FF0000 &(0 << 16)) |(0x0000FF00 &(selectorUnitID << 8)) | 1;
-									inputSelector = IOAudioSelectorControl::createInputSelector(selection, kIOAudioControlChannelIDAll, 0, engineIndex);
-									FailIf(NULL == inputSelector, Exit);
-									inputSelector->setValueChangeHandler(controlChangedHandler, this);
-									usbAudioEngine->addDefaultAudioControl(inputSelector);
-									featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioC«öontrolUsageInput, interfaceNum, altSettingNum, kVolumeControl);
-									if(featureUnitID) {
-										// Create the input gain controls
-										debugIOLog("----- Creating Intput Gain Controls -----");
-										addVolumeControls(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
-									}
-									featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioControlUsageInput, interfaceNum, altSettingNum, kMuteControl);
-									if(featureUnitID) 
-										addMuteControl(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
-								}
-							}
-							if (NULL != inputSelector) {
-								addSelectorSourcesToSelectorControl(inputSelector, arrayOfPathsFromOutputTerminal, pathsToOutputTerminalN, unitIndexInPath);
-								inputSelector->release();
-							} else {// no programmable selectors. Find the feature unit
-								featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioControlUsageInput, interfaceNum, altSettingNum, kVolumeControl);
-								if (featureUnitID) 
-									addVolumeControls(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
-							}
-							break;		// Get out of unitIndexInPath for loop
-						}
-					}
+				UInt8 unitID = theUnitIDNum->unsigned8BitValue();
 
-				}/* else {
-					// There are no selectors, so just find the one feature unit, if it exists.
-					featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioControlUsageInput, interfaceNum, altSettingNum, kVolumeControl);
-					if(featureUnitID) // Create playthrough volume controls
-						addVolumeControls(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
-				}*/
+				if(unitID == outputTerminalID) {
+					// Check for a playthrough path that would require a playthrough control
+					theUnitIDNum = OSDynamicCast(OSNumber, aPath->getLastObject());
+					FailIf(NULL == theUnitIDNum, Exit);
+					unitID = theUnitIDNum->unsigned8BitValue();
+					playThroughPaths = getPlaythroughPaths();
+#if ENABLEHARDCONTROLS
+					if(playThroughPaths) {
+						doPlaythroughSetup(usbAudioEngine, playThroughPaths, interfaceNum, altSettingNum);
+						playThroughPaths->release();
+					}
+					numPathsFromOutputTerminal = arrayOfPathsFromOutputTerminal->getCount();
+					if(numPathsFromOutputTerminal > 1 && mUSBAudioConfig->GetNumSelectorUnits(mInterfaceNum, 0)) {
+						// Found the array of paths that lead to our streaming output terminal
+						UInt32 numUnitsInPath = aPath->getCount();
+						for(UInt32 unitIndexInPath = 1; unitIndexInPath < numUnitsInPath; ++unitIndexInPath) {
+							theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(unitIndexInPath));
+							FailIf(NULL == theUnitIDNum, Exit);
+							UInt8 unitID = theUnitIDNum->unsigned8BitValue();
+							if(SELECTOR_UNIT == mUSBAudioConfig->GetSubType(mInterfaceNum, 0, unitID)) {
+								if(kIOReturnSuccess == setSelectorSetting(unitID, 1)) {
+									selectorUnitID = unitID;
+									engineIndex = getEngineInfoIndex(usbAudioEngine);
+									if(-1 != engineIndex) {
+										selection =(0xFF000000 &(pathsToOutputTerminalN << 24)) |(0x00FF0000 &(0 << 16)) |(0x0000FF00 &(selectorUnitID << 8)) | 1;
+										inputSelector = IOAudioSelectorControl::createInputSelector(selection, kIOAudioControlChannelIDAll, 0, engineIndex);
+										FailIf(NULL == inputSelector, Exit);
+										inputSelector->setValueChangeHandler(controlChangedHandler, this);
+										usbAudioEngine->addDefaultAudioControl(inputSelector);
+										featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioC«öontrolUsageInput, interfaceNum, altSettingNum, kVolumeControl);
+										if(featureUnitID) {
+											// Create the input gain controls
+											debugIOLog("----- Creating Intput Gain Controls -----");
+											addVolumeControls(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
+										}
+										featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioControlUsageInput, interfaceNum, altSettingNum, kMuteControl);
+										if(featureUnitID) 
+											addMuteControl(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
+									}
+								}
+								if (NULL != inputSelector) {
+									addSelectorSourcesToSelectorControl(inputSelector, arrayOfPathsFromOutputTerminal, pathsToOutputTerminalN, unitIndexInPath);
+									inputSelector->release();
+								} else {// no programmable selectors. Find the feature unit
+									featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioControlUsageInput, interfaceNum, altSettingNum, kVolumeControl);
+									if (featureUnitID) 
+										addVolumeControls(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
+								}
+								break;		// Get out of unitIndexInPath for loop
+							}
+						}
+
+					}/* else {
+						// There are no selectors, so just find the one feature unit, if it exists.
+						featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioControlUsageInput, interfaceNum, altSettingNum, kVolumeControl);
+						if(featureUnitID) // Create playthrough volume controls
+							addVolumeControls(usbAudioEngine, featureUnitID, interfaceNum, altSettingNum, kIOAudioControlUsageInput);
+					}*/
 #endif
-				break;		// Get out of pathsToOutputTerminalN for loop
+					break;		// Get out of pathsToOutputTerminalN for loop
+				}
 			}
 		}
-		
 		
 	
 	// add a clock-selector control.  it's fun and easy!
@@ -1097,26 +1101,28 @@ OSString * EMUUSBAudioDevice::getNameForPath(OSArray * arrayOfPathsFromOutputTer
 	aPath = OSDynamicCast(OSArray, arrayOfPathsFromOutputTerminal->getObject(*pathIndex));
 	FailIf(NULL == aPath, Exit);
 
-	UInt32	numElementsInPath = aPath->getCount();
-	UInt32	elementIndex = (UInt32) startingPoint;
-	while( elementIndex < numElementsInPath) {
-		OSNumber* theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(elementIndex));
-		FailIf(NULL == theUnitIDNum, Exit);
-		UInt8	unitID = theUnitIDNum->unsigned8BitValue();
-		UInt8	subType = mUSBAudioConfig->GetSubType(mInterfaceNum, 0, unitID);
-		if (INPUT_TERMINAL == subType) {
-			OSString*	tempStr = OSString::withCString(TerminalTypeString(mUSBAudioConfig->GetInputTerminalType(mInterfaceNum, 0, unitID)));
-			if (NULL != tempStr) {
-				if (!tempStr->isEqualTo("USB streaming")) 
-					theString = OSString::withString(tempStr);
-				tempStr->release();
-				(*pathIndex)++;
+	{
+		UInt32	numElementsInPath = aPath->getCount();
+		UInt32	elementIndex = (UInt32) startingPoint;
+		while( elementIndex < numElementsInPath) {
+			OSNumber* theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(elementIndex));
+			FailIf(NULL == theUnitIDNum, Exit);
+			UInt8	unitID = theUnitIDNum->unsigned8BitValue();
+			UInt8	subType = mUSBAudioConfig->GetSubType(mInterfaceNum, 0, unitID);
+			if (INPUT_TERMINAL == subType) {
+				OSString*	tempStr = OSString::withCString(TerminalTypeString(mUSBAudioConfig->GetInputTerminalType(mInterfaceNum, 0, unitID)));
+				if (NULL != tempStr) {
+					if (!tempStr->isEqualTo("USB streaming")) 
+						theString = OSString::withString(tempStr);
+					tempStr->release();
+					(*pathIndex)++;
+				}
+			} else if (MIXER_UNIT == subType) {
+				theString = getNameForMixerPath(arrayOfPathsFromOutputTerminal, pathIndex, elementIndex);
+				break;
 			}
-		} else if (MIXER_UNIT == subType) {
-			theString = getNameForMixerPath(arrayOfPathsFromOutputTerminal, pathIndex, elementIndex);
-			break;
+			++elementIndex;
 		}
-		++elementIndex;
 	}
 
 Exit:
@@ -1138,26 +1144,28 @@ OSString * EMUUSBAudioDevice::getNameForMixerPath(OSArray * arrayOfPathsFromOutp
 	theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(startingPoint));
 	FailIf(NULL == theUnitIDNum, Exit);
 
-	UInt32	numElementsInPath = aPath->getCount();
-	UInt8	numMixerSources = mUSBAudioConfig->GetNumSources(mInterfaceNum, 0, theUnitIDNum->unsigned8BitValue());
-	while (mixerSourceIndex < *pathIndex + numMixerSources) {
-		for(UInt8 elementIndex = startingPoint + 1; elementIndex < numElementsInPath; elementIndex++) {
-			theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(elementIndex));
-			FailIf(NULL == theUnitIDNum, Exit);
-			UInt8	unitID = theUnitIDNum->unsigned8BitValue();
-			UInt8	subType = mUSBAudioConfig->GetSubType(mInterfaceNum, 0, unitID);
-			if (INPUT_TERMINAL == subType) {
-				OSString*	tempString = getNameForPath(arrayOfPathsFromOutputTerminal, &mixerSourceIndex, elementIndex);
-				if (tempString) {
-					strncat(string, tempString->getCStringNoCopy(), 255 - strlen(string));
-					strncat(string, " & ", 255 - strlen(string));
-					tempString->release();
-				}
-			} else if (MIXER_UNIT == subType) {
-				OSString*	tempString = getNameForMixerPath(arrayOfPathsFromOutputTerminal, &mixerSourceIndex, elementIndex);
-				if (tempString) {
-					strncat(string, tempString->getCStringNoCopy(), 255 - strlen(string));
-					tempString->release();
+	{
+		UInt32	numElementsInPath = aPath->getCount();
+		UInt8	numMixerSources = mUSBAudioConfig->GetNumSources(mInterfaceNum, 0, theUnitIDNum->unsigned8BitValue());
+		while (mixerSourceIndex < *pathIndex + numMixerSources) {
+			for(UInt8 elementIndex = startingPoint + 1; elementIndex < numElementsInPath; elementIndex++) {
+				theUnitIDNum = OSDynamicCast(OSNumber, aPath->getObject(elementIndex));
+				FailIf(NULL == theUnitIDNum, Exit);
+				UInt8	unitID = theUnitIDNum->unsigned8BitValue();
+				UInt8	subType = mUSBAudioConfig->GetSubType(mInterfaceNum, 0, unitID);
+				if (INPUT_TERMINAL == subType) {
+					OSString*	tempString = getNameForPath(arrayOfPathsFromOutputTerminal, &mixerSourceIndex, elementIndex);
+					if (tempString) {
+						strncat(string, tempString->getCStringNoCopy(), 255 - strlen(string));
+						strncat(string, " & ", 255 - strlen(string));
+						tempString->release();
+					}
+				} else if (MIXER_UNIT == subType) {
+					OSString*	tempString = getNameForMixerPath(arrayOfPathsFromOutputTerminal, &mixerSourceIndex, elementIndex);
+					if (tempString) {
+						strncat(string, tempString->getCStringNoCopy(), 255 - strlen(string));
+						tempString->release();
+					}
 				}
 			}
 		}

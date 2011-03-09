@@ -1500,6 +1500,8 @@ bool EMUUSBAudioEngine::initHardware (IOService *provider) {
 	UInt16						averageFrameSamples = 0;
 	UInt16						additionalSampleFrameFreq = 0;
 	UInt32						index = 0;
+
+	EMUUSBAudioConfigObject		*usbAudio = NULL;
 	
     debugIOLog ("+EMUUSBAudioEngine[%p]::initHardware (%p)", this, provider);
 	terminatingDriver = FALSE;
@@ -1512,7 +1514,7 @@ bool EMUUSBAudioEngine::initHardware (IOService *provider) {
 
 	FailIf (NULL == usbAudioDevice, Exit); // (AC mod)
 
-    EMUUSBAudioConfigObject*	usbAudio = usbAudioDevice->GetUSBAudioConfigObject();
+    usbAudio = usbAudioDevice->GetUSBAudioConfigObject();
     FailIf (NULL == usbAudio, Exit);
 
 	mInput.audioStream = OSTypeAlloc(IOAudioStream); // new IOAudioStream
@@ -2234,20 +2236,22 @@ void EMUUSBAudioEngine::readHandler (void * object, void * parameter, IOReturn r
 	if (TRUE == engine->startingEngine) 
 		engine->startingEngine = FALSE;	// The engine is fully started (it's no longer starting... it's running)
 				
-	UInt64	currentUSBFrameNumber = engine->mBus->GetFrameNumber();
+	{
+		UInt64	currentUSBFrameNumber = engine->mBus->GetFrameNumber();
 
-	if (0 == engine->shouldStop && (SInt32)(engine->mInput.usbFrameToQueueAt - currentUSBFrameNumber) > (SInt32)(engine->mInput.numUSBTimeFrames * (engine->mInput.numUSBFrameListsToQueue- 1))) {
-		// The frame list that this would have queued has already been queued by convertInputSamples
+		if (0 == engine->shouldStop && (SInt32)(engine->mInput.usbFrameToQueueAt - currentUSBFrameNumber) > (SInt32)(engine->mInput.numUSBTimeFrames * (engine->mInput.numUSBFrameListsToQueue- 1))) {
+			// The frame list that this would have queued has already been queued by convertInputSamples
 //#if DEBUGLOADING
-		debugIOLog2 ("Not queuing a frame list in readHandler (%ld)", (SInt32)(engine->mInput.usbFrameToQueueAt - currentUSBFrameNumber));
+			debugIOLog2 ("Not queuing a frame list in readHandler (%ld)", (SInt32)(engine->mInput.usbFrameToQueueAt - currentUSBFrameNumber));
 //#endif
-		goto Exit;
-	}
-	if (kIOReturnSuccess != result && kIOReturnAborted != result) {
-		// skip ahead and see if that helps
-		if (engine->mInput.usbFrameToQueueAt <= currentUSBFrameNumber) {// ensure that the usbFrameToQueueAt is at least > currentUSBFrameNumber
-			engine->mInput.usbFrameToQueueAt = currentUSBFrameNumber + engine->mInput.frameOffset;//kMinimumFrameOffset;
-			debugIOLog2("try adjusting the input frame number");
+			goto Exit;
+		}
+		if (kIOReturnSuccess != result && kIOReturnAborted != result) {
+			// skip ahead and see if that helps
+			if (engine->mInput.usbFrameToQueueAt <= currentUSBFrameNumber) {// ensure that the usbFrameToQueueAt is at least > currentUSBFrameNumber
+				engine->mInput.usbFrameToQueueAt = currentUSBFrameNumber + engine->mInput.frameOffset;//kMinimumFrameOffset;
+				debugIOLog2("try adjusting the input frame number");
+			}
 		}
 	}
 
@@ -2397,6 +2401,9 @@ IOReturn EMUUSBAudioEngine::startUSBStream() {
 	UInt16								averageFrameSamples = 0;
 	UInt16								additionalSampleFrameFreq = 0;
 
+	UInt8								address = 0;
+	UInt32								maxPacketSize = 0;
+
 
 	// if the stream is already running, get the heck out of here! (AC)
 	if (usbStreamRunning) {
@@ -2488,8 +2495,8 @@ IOReturn EMUUSBAudioEngine::startUSBStream() {
 		mInput.pipe->retain ();
 	}
 	
-	UInt8	address = usbAudio->GetIsocEndpointAddress(mInput.interfaceNumber, mInput.alternateSettingID, mInput.streamDirection);
-	UInt32	maxPacketSize = usbAudio->GetEndpointMaxPacketSize(mInput.interfaceNumber, mInput.alternateSettingID, address);
+	address = usbAudio->GetIsocEndpointAddress(mInput.interfaceNumber, mInput.alternateSettingID, mInput.streamDirection);
+	maxPacketSize = usbAudio->GetEndpointMaxPacketSize(mInput.interfaceNumber, mInput.alternateSettingID, address);
 		
 				
 	mInput.maxFrameSize = altFrameSampleSize * mInput.multFactor;

@@ -200,14 +200,17 @@ IOReturn EMUUSBAudioLevelControl::performValueChange (OSObject * newValue) {
     debugIOLog ("+EMUUSBAudioLevelControl[%p]::performValueChange (%d)", this, newValue); 
 
 	FailIf (NULL == newValueAsNumber, Exit);
-	SInt32		newValueAsSInt32 = newValueAsNumber->unsigned32BitValue ();
-	debugIOLog ("++EMUUSBAudioLevelControl[%p]::performValueChange (%ld)", this, newValueAsSInt32);
 
-    if (NULL != setValueThreadCall) {
-        thread_call_enter1 (setValueThreadCall, (thread_call_param_t)newValueAsSInt32);
-    }
+	{
+		SInt32		newValueAsSInt32 = newValueAsNumber->unsigned32BitValue ();
+		debugIOLog ("++EMUUSBAudioLevelControl[%p]::performValueChange (%ld)", this, newValueAsSInt32);
 
-    debugIOLog ("-EMUUSBAudioLevelControl[%p]::performValueChange (%d)", this, newValueAsSInt32);
+	    if (NULL != setValueThreadCall) {
+	        thread_call_enter1 (setValueThreadCall, (thread_call_param_t)newValueAsSInt32);
+	    }
+
+	    debugIOLog ("-EMUUSBAudioLevelControl[%p]::performValueChange (%d)", this, newValueAsSInt32);
+	}
 
 Exit:
     return kIOReturnSuccess;

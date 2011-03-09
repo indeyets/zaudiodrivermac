@@ -1414,7 +1414,7 @@ OSString * EMUUSBAudioEngine::getGlobalUniqueID () {
 		mInput.streamInterface->GetDevice()->GetStringDescriptor (stringIndex, manufacturerString, kStringBufferSize);
 
 	if (0 == manufacturerString[0] || kIOReturnSuccess != err)
-		strcpy (manufacturerString, "Unknown Manufacturer");
+		strncpy (manufacturerString, "Unknown Manufacturer", kStringBufferSize);
 	
 	uniqueIDSize += strlen (manufacturerString);
 
@@ -1424,7 +1424,7 @@ OSString * EMUUSBAudioEngine::getGlobalUniqueID () {
 		mInput.streamInterface->GetDevice()->GetStringDescriptor (stringIndex, productString, kStringBufferSize);
 
 	if (0 == productString[0] || kIOReturnSuccess != err) 
-		strcpy (productString, "Unknown USB Audio Device");
+		strncpy (productString, "Unknown USB Audio Device", kStringBufferSize);
 	
 	uniqueIDSize += strlen (productString);
 
@@ -1441,7 +1441,7 @@ OSString * EMUUSBAudioEngine::getGlobalUniqueID () {
 			locationID = usbLocation->unsigned32BitValue ();
 			sprintf (locationIDString, "%x", locationID);
 		} else {
-			strcpy (locationIDString, "Unknown location");
+			strncpy (locationIDString, "Unknown location", kStringBufferSize);
 		}
 		uniqueIDSize += strlen (locationIDString);
 	} else {

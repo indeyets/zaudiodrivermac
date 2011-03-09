@@ -226,7 +226,7 @@ IOReturn EMUUSBAudioDevice::protectedInitHardware(IOService * provider) {
 		} 
 
 		if(0 == string[0] || kIOReturnSuccess != resultCode) 
-			strcpy(string, "Unknown USB Audio Device");
+			strncpy(string, "Unknown USB Audio Device", kStringBufferSize);
 		
 		setDeviceName(string);
 		resultCode = kIOReturnError;// re-initialize
@@ -236,7 +236,7 @@ IOReturn EMUUSBAudioDevice::protectedInitHardware(IOService * provider) {
 			resultCode = device->GetStringDescriptor(stringIndex, string, kStringBufferSize);
 		
 		if(0 == string[0] || kIOReturnSuccess != resultCode) 
-			strcpy(string, "Unknown Manufacturer");
+			strncpy(string, "Unknown Manufacturer", kStringBufferSize);
 		
 		setManufacturerName(string);
 		
@@ -891,7 +891,7 @@ IOReturn EMUUSBAudioDevice::doControlStuff(IOAudioEngine *audioEngine, UInt8 int
 									FailIf(NULL == inputSelector, Exit);
 									inputSelector->setValueChangeHandler(controlChangedHandler, this);
 									usbAudioEngine->addDefaultAudioControl(inputSelector);
-									featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioC«öontrolUsageInput, interfaceNum, altSettingNum, kVolumeControl);
+									featureUnitID = getBestFeatureUnitInPath(aPath, kIOAudioCÂ«Ã¶ontrolUsageInput, interfaceNum, altSettingNum, kVolumeControl);
 									if(featureUnitID) {
 										// Create the input gain controls
 										debugIOLog("----- Creating Intput Gain Controls -----");
